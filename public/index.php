@@ -18,6 +18,6 @@ $app->get('/', function ($request, $response) {
 });
 
 $app->get('/urls', function ($request, $response) {
-    return $response->write('Welcome to test');
+    return $this->get('renderer')->render($response, 'show.phtml');
 });
 $app->run();
