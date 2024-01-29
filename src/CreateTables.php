@@ -18,7 +18,7 @@ class CreateTables
                     name varchar(255),
                     created_at timestamp
         );';
-        
+
         $this->pdo->exec($sql);
 
         return $this;
