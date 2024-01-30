@@ -11,6 +11,8 @@ use Slim\Flash\Messages;
 use Valitron\Validator;
 use Carbon\Carbon;
 
+session_start();
+
 $container = new Container();
 $container->set('renderer', function () {
     return new \Slim\Views\PhpRenderer(__DIR__ . '/../templates');
@@ -35,13 +37,18 @@ $app->get('/', function ($request, $response) {
 })->setName("index");
 
 $app->get('/urls', function ($request, $response) {
-    return $this->get('renderer')->render($response, 'show.phtml');
+    $dataBase = new SqlQuery($this->get('connection'));
+    $dataFromBase = $dataBase->query(
+        'SELECT * FROM urls ORDER BY id DESC'
+    );
+    $params = ['data' => $dataFromBase];
+    return $this->get('renderer')->render($response, 'show.phtml', $params);
 })->setName("urls.store");
 
 $app->post('/urls', function ($request, $response) use ($router) {
     $urls = $request->getParsedBodyParam('url');
     $dataBase = new SqlQuery($this->get('connection'));
-    $errors = [];
+    $error = [];
 
     try {
         $tableCreator = new CreateTables($this->get('connection'));
@@ -59,13 +66,39 @@ $app->post('/urls', function ($request, $response) use ($router) {
         $searchName = $dataBase->query('SELECT id FROM urls WHERE name = :name', $urls);
 
         if (count($searchName) !== 0) {
-            return $response->withRedirect($router->urlFor('index'));
+            $this->get('flash')->addMessage('success', 'Страница уже существует');
+            return $response->withRedirect(
+                $router->urlFor('urls.show', ['id' => $searchName[0]['id']])
+            );
         }
 
         $urls['time'] = Carbon::now();
         $dataBase->query('INSERT INTO urls(name, created_at) VALUES(:name, :time) RETURNING id', $urls);
-        return $response->withRedirect($router->urlFor('urls.store'));
+
+        $id = $dataBase->query('SELECT MAX(id) FROM urls');
+        $this->get('flash')->addMessage('success', 'Страница успешно добавлена');
+
+        return $response->withRedirect($router->urlFor('urls.show', ['id' => $id[0]['max']]));
+    } else {
+        if (isset($urls) && strlen($urls['name']) < 1) {
+            $error['name'] = 'URL не должен быть пустым';
+        } elseif (isset($urls)) {
+            $error['name'] = 'Некорректный URL';
+        }
     }
+
+    $params = ['erorrs' => $error];
+    return $this->get('renderer')->render($response->withStatus(422), 'main.phtml', $params);
 });
+
+$app->get('/urls/{id}', function ($request, $response, $args) {
+    $id = $args['id'];
+    $messages = $this->get('flash')->getMessages();
+
+    $dataBase = new SqlQuery($this->get('connection'));
+    $dataFromBase = $dataBase->query('SELECT * FROM urls WHERE id = :id', $args);
+    $params = ['data' => $dataFromBase, 'flash' => $messages];
+    return $this->get('renderer')->render($response, 'url.phtml', $params);
+})->setName("urls.show");
 
 $app->run();
