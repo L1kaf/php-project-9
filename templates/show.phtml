@@ -15,7 +15,7 @@
                     <?php foreach($data as $item): ?>
                         <tr>
                             <td><?= htmlspecialchars($item['id']) ?></td>
-                            <td><?= htmlspecialchars($item['name']) ?></td>
+                            <td><a href="/urls/<?= htmlspecialchars($item['id']) ?>"><?= htmlspecialchars($item['name']) ?></a></td>
                             <td></td>
                             <td></td>
                         </tr>
