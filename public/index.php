@@ -10,6 +10,7 @@ use App\SqlQuery;
 use Slim\Flash\Messages;
 use Valitron\Validator;
 use Carbon\Carbon;
+use Slim\Middleware\MethodOverrideMiddleware;
 
 session_start();
 
@@ -28,6 +29,7 @@ $container->set('flash', function () {
 });
 
 $app = AppFactory::createFromContainer($container);
+$app->add(MethodOverrideMiddleware::class);
 $app->addErrorMiddleware(true, true, true);
 
 $router = $app->getRouteCollector()->getRouteParser();
@@ -38,10 +40,23 @@ $app->get('/', function ($request, $response) {
 
 $app->get('/urls', function ($request, $response) {
     $dataBase = new SqlQuery($this->get('connection'));
-    $dataFromBase = $dataBase->query(
-        'SELECT * FROM urls ORDER BY id DESC'
+    $dataFromBase = $dataBase->query('SELECT id, name FROM urls ORDER BY id DESC');
+    $dataFromChecks = $dataBase->query(
+        'SELECT url_id, MAX(created_at) AS created_at
+        FROM url_checks
+        GROUP BY url_id'
     );
-    $params = ['data' => $dataFromBase];
+
+    $combinedData = array_map(function ($url) use ($dataFromChecks) {
+        foreach ($dataFromChecks as $check) {
+            if ($url['id'] === $check['url_id']) {
+                $url['created_at'] = $check['created_at'];
+            }
+        }
+        return $url;
+    }, $dataFromBase);
+
+    $params = ['data' => $combinedData];
     return $this->get('renderer')->render($response, 'show.phtml', $params);
 })->setName("urls.store");
 
@@ -96,7 +111,8 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
 
     $dataBase = new SqlQuery($this->get('connection'));
     $dataFromBase = $dataBase->query('SELECT * FROM urls WHERE id = :id', $args);
-    $params = ['data' => $dataFromBase, 'flash' => $messages];
+    $dataFromChecks = $dataBase->query('SELECT * FROM url_checks WHERE url_id = :id ORDER BY id DESC', $args);
+    $params = ['data' => $dataFromBase, 'flash' => $messages, 'checks' => $dataFromChecks];
     return $this->get('renderer')->render($response, 'url.phtml', $params);
 })->setName("urls.show");
 
@@ -104,17 +120,17 @@ $app->post('/urls/{id}/checks', function ($request, $response, $args) use ($rout
     $id = $args['id'];
 
     $dataBase = new SqlQuery($this->get('connection'));
-    
-    $name = $dataBase->query('SELECT name FROM urls WHERE id = :id', $id);
+
+    $urls['url_id'] = $args['id'];
     $urls['time'] = Carbon::now();
-    $dataBase->query('INSERT INTO urls_checks(created_at) VALUES(:time)', $urls);
+    $dataBase->query('INSERT INTO url_checks(url_id, created_at) VALUES(:url_id, :time)', $urls);
 
     $this->get('flash')->addMessage('success', 'Страница успешно проверена');
 
     return $response->withRedirect(
-        $router->urlFor('urls.store')
+        $router->urlFor('urls.show', ['id' => $id])
     );
-});
+})->setName("urls.checks");
 
 
 $app->run();
