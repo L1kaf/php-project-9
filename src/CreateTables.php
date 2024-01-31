@@ -23,4 +23,17 @@ class CreateTables
 
         return $this;
     }
+
+    public function createTableUrlChecks()
+    {
+        $sql = 'CREATE TABLE IF NOT EXISTS urls (
+                    id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+                    name varchar(255),
+                    created_at timestamp
+        );';
+
+        $this->pdo->exec($sql);
+
+        return $this;
+    }
 }

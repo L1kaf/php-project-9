@@ -92,7 +92,6 @@ $app->post('/urls', function ($request, $response) use ($router) {
 });
 
 $app->get('/urls/{id}', function ($request, $response, $args) {
-    $id = $args['id'];
     $messages = $this->get('flash')->getMessages();
 
     $dataBase = new SqlQuery($this->get('connection'));
@@ -100,5 +99,22 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
     $params = ['data' => $dataFromBase, 'flash' => $messages];
     return $this->get('renderer')->render($response, 'url.phtml', $params);
 })->setName("urls.show");
+
+$app->post('/urls/{id}/checks', function ($request, $response, $args) use ($router) {
+    $id = $args['id'];
+
+    $dataBase = new SqlQuery($this->get('connection'));
+    
+    $name = $dataBase->query('SELECT name FROM urls WHERE id = :id', $id);
+    $urls['time'] = Carbon::now();
+    $dataBase->query('INSERT INTO urls_checks(created_at) VALUES(:time)', $urls);
+
+    $this->get('flash')->addMessage('success', 'Страница успешно проверена');
+
+    return $response->withRedirect(
+        $router->urlFor('urls.store')
+    );
+});
+
 
 $app->run();
