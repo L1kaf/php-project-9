@@ -5,6 +5,10 @@
 
 ### Description:
 ---
+This repository contains the implementation of the third project of the Hexlet learning portal: Page Analyzer!
+
+Page Analyzer is a site that analyzes specified pages for SEO suitability similar to PageSpeed Insights (existing H1, TITLE and DESCRIPTION tags on the main page of the site). It is a full-fledged application based on the Slim framework. Here we practice the basic principles of building modern sites on MVC-architecture: working with routing, request handlers and templating, interaction with the database.
+
 Demo: https://page-analyzer-v2ge.onrender.com/
 
 ### System Requirements:
