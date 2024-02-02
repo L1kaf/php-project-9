@@ -11,6 +11,7 @@ use Slim\Flash\Messages;
 use Valitron\Validator;
 use Carbon\Carbon;
 use Slim\Middleware\MethodOverrideMiddleware;
+use GuzzleHttp\Client;
 
 session_start();
 
@@ -122,8 +123,15 @@ $app->post('/urls/{id}/checks', function ($request, $response, $args) use ($rout
     $dataBase = new SqlQuery($this->get('connection'));
 
     $urls['url_id'] = $args['id'];
+
+    $name = $dataBase->query('SELECT name FROM urls WHERE id = :url_id', $urls);
+    $client = new Client();
+
+    $res = $client->request('GET', $name[0]['name']);
+    $urls['status'] = $res->getStatusCode();
+
     $urls['time'] = Carbon::now();
-    $dataBase->query('INSERT INTO url_checks(url_id, created_at) VALUES(:url_id, :time)', $urls);
+    $dataBase->query('INSERT INTO url_checks(url_id, status_code, created_at) VALUES(:url_id, :status, :time)', $urls);
 
     $this->get('flash')->addMessage('success', 'Страница успешно проверена');
 
