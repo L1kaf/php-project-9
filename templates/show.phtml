@@ -19,7 +19,7 @@
                             <td><?= htmlspecialchars($item['id']) ?></td>
                             <td><a href="/urls/<?= htmlspecialchars($item['id']) ?>"><?= htmlspecialchars($item['name']) ?></a></td>
                             <td><?= isset($item['created_at']) ? htmlspecialchars($item['created_at']) : '' ?></td>
-                            <td></td>
+                            <td><?= isset($item['status_code']) ? htmlspecialchars($item['status_code']) : '' ?></td>
                         </tr>
                     <?php endforeach ?>
                 </tbody>

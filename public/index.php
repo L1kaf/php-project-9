@@ -42,15 +42,16 @@ $app->get('/urls', function ($request, $response) {
     $dataBase = new SqlQuery($this->get('connection'));
     $dataFromBase = $dataBase->query('SELECT id, name FROM urls ORDER BY id DESC');
     $dataFromChecks = $dataBase->query(
-        'SELECT url_id, MAX(created_at) AS created_at
+        'SELECT url_id, MAX(created_at) AS created_at, status_code
         FROM url_checks
-        GROUP BY url_id'
+        GROUP BY url_id, status_code'
     );
 
     $combinedData = array_map(function ($url) use ($dataFromChecks) {
         foreach ($dataFromChecks as $check) {
             if ($url['id'] === $check['url_id']) {
                 $url['created_at'] = $check['created_at'];
+                $url['status_code'] = $check['status_code'];
             }
         }
         return $url;
