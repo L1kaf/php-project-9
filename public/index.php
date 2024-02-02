@@ -5,7 +5,6 @@ require __DIR__ . '/../vendor/autoload.php';
 use Slim\Factory\AppFactory;
 use DI\Container;
 use App\Connection;
-use App\CreateTables;
 use App\SqlQuery;
 use Slim\Flash\Messages;
 use Valitron\Validator;
@@ -65,13 +64,6 @@ $app->post('/urls', function ($request, $response) use ($router) {
     $urls = $request->getParsedBodyParam('url');
     $dataBase = new SqlQuery($this->get('connection'));
     $error = [];
-
-    try {
-        $tableCreator = new CreateTables($this->get('connection'));
-        $table = $tableCreator->createTableUrls();
-    } catch (\PDOException $e) {
-        echo $e->getMessage();
-    }
 
     $v = new Validator(array('name' => $urls['name'], 'count' => strlen((string) $urls['name'])));
     $v->rule('required', 'name')->rule('lengthMax', 'count.*', 255)->rule('url', 'name');
