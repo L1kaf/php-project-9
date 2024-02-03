@@ -11,6 +11,7 @@ use Valitron\Validator;
 use Carbon\Carbon;
 use Slim\Middleware\MethodOverrideMiddleware;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ConnectException;
 
 session_start();
 
@@ -120,8 +121,15 @@ $app->post('/urls/{id}/checks', function ($request, $response, $args) use ($rout
     $name = $dataBase->query('SELECT name FROM urls WHERE id = :url_id', $urls);
     $client = new Client();
 
-    $res = $client->request('GET', $name[0]['name']);
-    $urls['status'] = $res->getStatusCode();
+    try {
+        $res = $client->request('GET', $name[0]['name']);
+        $urls['status'] = $res->getStatusCode();
+    } catch (ConnectException $e) {
+        $this->get('flash')->addMessage('failure', 'Произошла ошибка при проверке, не удалось подключиться');
+        return $response->withRedirect(
+            $router->urlFor('urls.show', ['id' => $id])
+        );
+    }
 
     $urls['time'] = Carbon::now();
     $dataBase->query('INSERT INTO url_checks(url_id, status_code, created_at) VALUES(:url_id, :status, :time)', $urls);
