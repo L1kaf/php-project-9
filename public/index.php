@@ -11,6 +11,7 @@ use Valitron\Validator;
 use Carbon\Carbon;
 use Slim\Middleware\MethodOverrideMiddleware;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
 
 session_start();
@@ -126,6 +127,17 @@ $app->post('/urls/{id}/checks', function ($request, $response, $args) use ($rout
         $urls['status'] = $res->getStatusCode();
     } catch (ConnectException $e) {
         $this->get('flash')->addMessage('failure', 'Произошла ошибка при проверке, не удалось подключиться');
+        return $response->withRedirect(
+            $router->urlFor('urls.show', ['id' => $id])
+        );
+    } catch (ClientException $e) {
+        $urls['status'] = $e->getResponse()->getStatusCode();
+        $urls['title'] = 'Доступ ограничен: проблема с IP';
+        $urls['h1'] = 'Доступ ограничен: проблема с IP';
+        $urls['time'] = Carbon::now();
+        $dataBase->query('INSERT INTO url_checks(url_id, status_code, title, h1, created_at)
+            VALUES(:url_id, :status, :title, :h1, :time)', $urls);
+        $this->get('flash')->addMessage('warning', 'Проверка была выполнена успешно, но сервер ответил с ошибкой');
         return $response->withRedirect(
             $router->urlFor('urls.show', ['id' => $id])
         );

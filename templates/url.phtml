@@ -5,6 +5,9 @@
 <?php  if(isset($flash['failure'])): ?>
     <div class="alert alert-danger" role="alert"><?= htmlspecialchars($flash['failure'][0]) ?></div>
 <?php endif ?>
+<?php  if(isset($flash['warning'])): ?>
+    <div class="alert alert-warning" role="alert"><?= htmlspecialchars($flash['warning'][0]) ?></div>
+<?php endif ?>
 <main>
     <div class="container-lg mt-3">
         <h1>Сайт: <?= htmlspecialchars($data[0]['name']) ?></h1>
@@ -44,9 +47,9 @@
                     <tr>
                         <td><?= htmlspecialchars($key['id']) ?></td>
                         <td><?= isset($key['status_code']) ? htmlspecialchars($key['status_code']) : '' ?></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
+                        <td><?= isset($key['h1']) ? htmlspecialchars($key['h1']) : '' ?></td>
+                        <td><?= isset($key['title']) ? htmlspecialchars($key['title']) : '' ?></td>
+                        <td><?= isset($key['description']) ? htmlspecialchars($key['description']) : '' ?></td>
                         <td><?= htmlspecialchars($key['created_at']) ?></td>
                     </tr>
                 <?php endforeach ?>
