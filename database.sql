@@ -10,5 +10,5 @@ CREATE TABLE IF NOT EXISTS url_checks (
         status_code int,
         h1 varchar(255),
         title varchar(255),
-        desctiprion text,
+        desctiption text,
         created_at timestamp);

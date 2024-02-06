@@ -13,6 +13,7 @@ use Slim\Middleware\MethodOverrideMiddleware;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
+use DiDom\Document;
 
 session_start();
 
@@ -143,8 +144,28 @@ $app->post('/urls/{id}/checks', function ($request, $response, $args) use ($rout
         );
     }
 
+    $htmlFromUrl = (string) $res->getBody();
+    $document = new Document($htmlFromUrl);
+
+    $title = optional($document->first('title'));
+    if ($title !== null) {
+        $urls['title'] = $title->text();
+    }
+    $h1 = optional($document->first('h1'));
+    if ($h1 !== null) {
+        $urls['h1'] = $h1->text();
+    }
+    $meta = optional($document->first('meta[name="description"]'));
+    if ($meta !== null) {
+        $urls['meta'] = $meta->getAttribute('content');
+    }
+
     $urls['time'] = Carbon::now();
-    $dataBase->query('INSERT INTO url_checks(url_id, status_code, created_at) VALUES(:url_id, :status, :time)', $urls);
+    $dataBase->query(
+        'INSERT INTO url_checks(url_id, status_code, h1, title, desctiption, created_at) 
+        VALUES(:url_id, :status, :h1, :title, :meta, :time)',
+        $urls
+    );
 
     $this->get('flash')->addMessage('success', 'Страница успешно проверена');
 
