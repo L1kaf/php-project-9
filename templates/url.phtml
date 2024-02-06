@@ -8,7 +8,7 @@
 <?php  if(isset($flash['warning'])): ?>
     <div class="alert alert-warning" role="alert"><?= htmlspecialchars($flash['warning'][0]) ?></div>
 <?php endif ?>
-<main>
+<main class="flex-grow-1">
     <div class="container-lg mt-3">
         <h1>Сайт: <?= htmlspecialchars($data[0]['name']) ?></h1>
         <div class="table-responsive">
