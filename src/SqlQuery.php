@@ -4,7 +4,7 @@ namespace App;
 
 class SqlQuery
 {
-    private $pdo;
+    private \PDO $pdo;
 
     public function __construct(\PDO $pdo)
     {
