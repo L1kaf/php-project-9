@@ -162,7 +162,7 @@ $app->post('/urls/{id}/checks', function ($request, $response, $args) use ($rout
 
     $urls['time'] = Carbon::now();
     $dataBase->query(
-        'INSERT INTO url_checks(url_id, status_code, h1, title, desctiption, created_at) 
+        'INSERT INTO url_checks(url_id, status_code, h1, title, description, created_at) 
         VALUES(:url_id, :status, :h1, :title, :meta, :time)',
         $urls
     );
