@@ -103,7 +103,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
     return $this->get('renderer')->render($response->withStatus(422), 'main.phtml', $params);
 });
 
-$app->get('/urls/{id}', function ($request, $response, $args) {
+$app->get('/urls/{id:[0-9]+}', function ($request, $response, $args) {
     $messages = $this->get('flash')->getMessages();
 
     $dataBase = new SqlQuery($this->get('connection'));

@@ -6,12 +6,12 @@ class SqlQuery
 {
     private $pdo;
 
-    public function __construct($pdo)
+    public function __construct(\PDO $pdo)
     {
         $this->pdo = $pdo;
     }
 
-    public function query($sql, $params = [])
+    public function query(string $sql, array $params = [])
     {
         $stmt = $this->pdo->prepare($sql);
 
